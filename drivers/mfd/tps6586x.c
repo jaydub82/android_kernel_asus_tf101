@@ -432,6 +432,7 @@ static irqreturn_t tps6586x_irq(int irq, void *data)
 static int __devinit tps6586x_irq_init(struct tps6586x *tps6586x, int irq,
 				       int irq_base)
 {
+	struct tps6586x_platform_data *pdata = tps6586x->client->dev.platform_data;
 	int i, ret;
 	u8 tmp[4];
 
@@ -473,7 +474,7 @@ static int __devinit tps6586x_irq_init(struct tps6586x *tps6586x, int irq,
 
 	if (!ret) {
 		device_init_wakeup(tps6586x->dev, 1);
-		enable_irq_wake(irq);
+		irq_set_irq_wake(irq, !pdata->disable_wake);
 	}
 
 	return ret;

@@ -112,6 +112,7 @@ struct tps6586x_platform_data {
 
 	int gpio_base;
 	int irq_base;
+	bool disable_wake; /* whether to prevent IRQs resuming from suspend */
 };
 
 /*
