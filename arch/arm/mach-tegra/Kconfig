@@ -456,5 +456,12 @@ config TEGRA_WDT_RECOVERY
 	help
 	  Enables watchdog recovery mechanism to protect against
 	  suspend/resume hangs.
+
+config TEGRA_OVERCLOCK
+	bool "Enable overclocking"
+	default n
+	help
+	  Enable overclocking support.
+
 endif
 
