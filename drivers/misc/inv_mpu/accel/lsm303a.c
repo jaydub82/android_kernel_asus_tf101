@@ -1,20 +1,20 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 
 /**
@@ -22,9 +22,8 @@
  *  @brief      Provides the interface to setup and handle an accelerometer.
  *
  *  @{
- *      @file   lsm303dlx_a.c
- *      @brief  Accelerometer setup and handling methods for ST LSM303DLH
- *              or LSM303DLM accel.
+ *      @file   lsm303a.c
+ *      @brief  Accelerometer setup and handling methods for ST LSM303.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -48,40 +47,39 @@
 /* -------------------------------------------------------------------------- */
 
 /* full scale setting - register & mask */
-#define LSM303DLx_CTRL_REG1         (0x20)
-#define LSM303DLx_CTRL_REG2         (0x21)
-#define LSM303DLx_CTRL_REG3         (0x22)
-#define LSM303DLx_CTRL_REG4         (0x23)
-#define LSM303DLx_CTRL_REG5         (0x24)
-#define LSM303DLx_HP_FILTER_RESET   (0x25)
-#define LSM303DLx_REFERENCE         (0x26)
-#define LSM303DLx_STATUS_REG        (0x27)
-#define LSM303DLx_OUT_X_L           (0x28)
-#define LSM303DLx_OUT_X_H           (0x29)
-#define LSM303DLx_OUT_Y_L           (0x2a)
-#define LSM303DLx_OUT_Y_H           (0x2b)
-#define LSM303DLx_OUT_Z_L           (0x2b)
-#define LSM303DLx_OUT_Z_H           (0x2d)
+#define LIS331_CTRL_REG1         (0x20)
+#define LIS331_CTRL_REG2         (0x21)
+#define LIS331_CTRL_REG3         (0x22)
+#define LIS331_CTRL_REG4         (0x23)
+#define LIS331_CTRL_REG5         (0x24)
+#define LIS331_HP_FILTER_RESET   (0x25)
+#define LIS331_REFERENCE         (0x26)
+#define LIS331_STATUS_REG        (0x27)
+#define LIS331_OUT_X_L           (0x28)
+#define LIS331_OUT_X_H           (0x29)
+#define LIS331_OUT_Y_L           (0x2a)
+#define LIS331_OUT_Y_H           (0x2b)
+#define LIS331_OUT_Z_L           (0x2b)
+#define LIS331_OUT_Z_H           (0x2d)
 
-#define LSM303DLx_INT1_CFG          (0x30)
-#define LSM303DLx_INT1_SRC          (0x31)
-#define LSM303DLx_INT1_THS          (0x32)
-#define LSM303DLx_INT1_DURATION     (0x33)
+#define LIS331_INT1_CFG          (0x30)
+#define LIS331_INT1_SRC          (0x31)
+#define LIS331_INT1_THS          (0x32)
+#define LIS331_INT1_DURATION     (0x33)
 
-#define LSM303DLx_INT2_CFG          (0x34)
-#define LSM303DLx_INT2_SRC          (0x35)
-#define LSM303DLx_INT2_THS          (0x36)
-#define LSM303DLx_INT2_DURATION     (0x37)
+#define LIS331_INT2_CFG          (0x34)
+#define LIS331_INT2_SRC          (0x35)
+#define LIS331_INT2_THS          (0x36)
+#define LIS331_INT2_DURATION     (0x37)
 
-#define LSM303DLx_CTRL_MASK         (0x30)
-#define LSM303DLx_SLEEP_MASK        (0x20)
-#define LSM303DLx_PWR_MODE_NORMAL   (0x20)
+#define LIS331_CTRL_MASK         (0x30)
+#define LIS331_SLEEP_MASK        (0x20)
 
-#define LSM303DLx_MAX_DUR           (0x7F)
+#define LIS331_MAX_DUR (0x7F)
 
 /* -------------------------------------------------------------------------- */
 
-struct lsm303dlx_a_config {
+struct lsm303dlha_config {
 	unsigned int odr;
 	unsigned int fsr; /** < full scale range mg */
 	unsigned int ths; /** < Motion no-motion thseshold mg */
@@ -93,18 +91,18 @@ struct lsm303dlx_a_config {
 	unsigned char mot_int1_cfg;
 };
 
-struct lsm303dlx_a_private_data {
-	struct lsm303dlx_a_config suspend;
-	struct lsm303dlx_a_config resume;
+struct lsm303dlha_private_data {
+	struct lsm303dlha_config suspend;
+	struct lsm303dlha_config resume;
 };
 
 /* -------------------------------------------------------------------------- */
 
-static int lsm303dlx_a_set_ths(void *mlsl_handle,
-			       struct ext_slave_platform_data *pdata,
-			       struct lsm303dlx_a_config *config,
-			       int apply,
-			       long ths)
+static int lsm303dlha_set_ths(void *mlsl_handle,
+			struct ext_slave_platform_data *pdata,
+			struct lsm303dlha_config *config,
+			int apply,
+			long ths)
 {
 	int result = INV_SUCCESS;
 	if ((unsigned int) ths >= config->fsr)
@@ -118,29 +116,29 @@ static int lsm303dlx_a_set_ths(void *mlsl_handle,
 	MPL_LOGV("THS: %d, 0x%02x\n", config->ths, (int)config->reg_ths);
 	if (apply)
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_INT1_THS,
+					LIS331_INT1_THS,
 					config->reg_ths);
 	return result;
 }
 
-static int lsm303dlx_a_set_dur(void *mlsl_handle,
-			       struct ext_slave_platform_data *pdata,
-			       struct lsm303dlx_a_config *config,
-			       int apply,
-			       long dur)
+static int lsm303dlha_set_dur(void *mlsl_handle,
+			struct ext_slave_platform_data *pdata,
+			struct lsm303dlha_config *config,
+			int apply,
+			long dur)
 {
 	int result = INV_SUCCESS;
 	long reg_dur = (dur * config->odr) / 1000000L;
 	config->dur = dur;
 
-	if (reg_dur > LSM303DLx_MAX_DUR)
-		reg_dur = LSM303DLx_MAX_DUR;
+	if (reg_dur > LIS331_MAX_DUR)
+		reg_dur = LIS331_MAX_DUR;
 
 	config->reg_dur = (unsigned char) reg_dur;
 	MPL_LOGV("DUR: %d, 0x%02x\n", config->dur, (int)config->reg_dur);
 	if (apply)
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_INT1_DURATION,
+					LIS331_INT1_DURATION,
 					(unsigned char)reg_dur);
 	return result;
 }
@@ -155,11 +153,11 @@ static int lsm303dlx_a_set_dur(void *mlsl_handle,
  * - MPU_SLAVE_IRQ_TYPE_MOTION
  * - MPU_SLAVE_IRQ_TYPE_DATA_READY
  */
-static int lsm303dlx_a_set_irq(void *mlsl_handle,
-			       struct ext_slave_platform_data *pdata,
-			       struct lsm303dlx_a_config *config,
-			       int apply,
-			       long irq_type)
+static int lsm303dlha_set_irq(void *mlsl_handle,
+			struct ext_slave_platform_data *pdata,
+			struct lsm303dlha_config *config,
+			int apply,
+			long irq_type)
 {
 	int result = INV_SUCCESS;
 	unsigned char reg1;
@@ -179,9 +177,9 @@ static int lsm303dlx_a_set_irq(void *mlsl_handle,
 
 	if (apply) {
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_CTRL_REG3, reg1);
+					LIS331_CTRL_REG3, reg1);
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_INT1_CFG, reg2);
+					LIS331_INT1_CFG, reg2);
 	}
 
 	return result;
@@ -204,35 +202,33 @@ static int lsm303dlx_a_set_irq(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_set_odr(void *mlsl_handle,
-			       struct ext_slave_platform_data *pdata,
-			       struct lsm303dlx_a_config *config,
-			       int apply,
-			       long odr)
+static int lsm303dlha_set_odr(void *mlsl_handle,
+			struct ext_slave_platform_data *pdata,
+			struct lsm303dlha_config *config,
+			int apply,
+			long odr)
 {
 	unsigned char bits;
 	int result = INV_SUCCESS;
 
-	/* normal power modes */
 	if (odr > 400000) {
 		config->odr = 1000000;
-		bits = LSM303DLx_PWR_MODE_NORMAL | 0x18;
+		bits = 0x38;
 	} else if (odr > 100000) {
 		config->odr = 400000;
-		bits = LSM303DLx_PWR_MODE_NORMAL | 0x10;
+		bits = 0x30;
 	} else if (odr > 50000) {
 		config->odr = 100000;
-		bits = LSM303DLx_PWR_MODE_NORMAL | 0x08;
+		bits = 0x28;
 	} else if (odr > 10000) {
 		config->odr = 50000;
-		bits = LSM303DLx_PWR_MODE_NORMAL | 0x00;
-	/* low power modes */
+		bits = 0x20;
 	} else if (odr > 5000) {
 		config->odr = 10000;
 		bits = 0xC0;
 	} else if (odr > 2000) {
 		config->odr = 5000;
-		bits = 0xA0;
+		bits = 0xB0;
 	} else if (odr > 1000) {
 		config->odr = 2000;
 		bits = 0x80;
@@ -248,11 +244,12 @@ static int lsm303dlx_a_set_odr(void *mlsl_handle,
 	}
 
 	config->ctrl_reg1 = bits | (config->ctrl_reg1 & 0x7);
-	lsm303dlx_a_set_dur(mlsl_handle, pdata, config, apply, config->dur);
+	lsm303dlha_set_dur(mlsl_handle, pdata,
+			config, apply, config->dur);
 	MPL_LOGV("ODR: %d, 0x%02x\n", config->odr, (int)config->ctrl_reg1);
 	if (apply)
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_CTRL_REG1,
+					LIS331_CTRL_REG1,
 					config->ctrl_reg1);
 	return result;
 }
@@ -274,11 +271,11 @@ static int lsm303dlx_a_set_odr(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_set_fsr(void *mlsl_handle,
-			       struct ext_slave_platform_data *pdata,
-			       struct lsm303dlx_a_config *config,
-			       int apply,
-			       long fsr)
+static int lsm303dlha_set_fsr(void *mlsl_handle,
+			struct ext_slave_platform_data *pdata,
+			struct lsm303dlha_config *config,
+			int apply,
+			long fsr)
 {
 	unsigned char reg1 = 0x40;
 	int result = INV_SUCCESS;
@@ -293,12 +290,12 @@ static int lsm303dlx_a_set_fsr(void *mlsl_handle,
 		config->fsr = 8192;
 	}
 
-	lsm303dlx_a_set_ths(mlsl_handle, pdata,
+	lsm303dlha_set_ths(mlsl_handle, pdata,
 			config, apply, config->ths);
 	MPL_LOGV("FSR: %d\n", config->fsr);
 	if (apply)
 		result = inv_serial_single_write(mlsl_handle, pdata->address,
-					LSM303DLx_CTRL_REG4, reg1);
+					LIS331_CTRL_REG4, reg1);
 
 	return result;
 }
@@ -315,22 +312,22 @@ static int lsm303dlx_a_set_fsr(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_suspend(void *mlsl_handle,
-			       struct ext_slave_descr *slave,
-			       struct ext_slave_platform_data *pdata)
+static int lsm303dlha_suspend(void *mlsl_handle,
+			      struct ext_slave_descr *slave,
+			      struct ext_slave_platform_data *pdata)
 {
 	int result = INV_SUCCESS;
 	unsigned char reg1;
 	unsigned char reg2;
-	struct lsm303dlx_a_private_data *private_data =
-		(struct lsm303dlx_a_private_data *)(pdata->private_data);
+	struct lsm303dlha_private_data *private_data =
+		(struct lsm303dlha_private_data *)(pdata->private_data);
 
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG1,
+				       LIS331_CTRL_REG1,
 				       private_data->suspend.ctrl_reg1);
 
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG2, 0x0f);
+				       LIS331_CTRL_REG2, 0x0f);
 	reg1 = 0x40;
 	if (private_data->suspend.fsr == 8192)
 		reg1 |= 0x30;
@@ -339,12 +336,12 @@ static int lsm303dlx_a_suspend(void *mlsl_handle,
 	/* else bits [4..5] are already zero */
 
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG4, reg1);
+				       LIS331_CTRL_REG4, reg1);
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_THS,
+				       LIS331_INT1_THS,
 				       private_data->suspend.reg_ths);
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_DURATION,
+				       LIS331_INT1_DURATION,
 				       private_data->suspend.reg_dur);
 
 	if (private_data->suspend.irq_type == MPU_SLAVE_IRQ_TYPE_DATA_READY) {
@@ -359,11 +356,11 @@ static int lsm303dlx_a_suspend(void *mlsl_handle,
 		reg2 = 0x00;
 	}
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG3, reg1);
+				       LIS331_CTRL_REG3, reg1);
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_CFG, reg2);
+				       LIS331_INT1_CFG, reg2);
 	result = inv_serial_read(mlsl_handle, pdata->address,
-				LSM303DLx_HP_FILTER_RESET, 1, &reg1);
+				LIS331_HP_FILTER_RESET, 1, &reg1);
 	return result;
 }
 
@@ -380,19 +377,19 @@ static int lsm303dlx_a_suspend(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_resume(void *mlsl_handle,
-			      struct ext_slave_descr *slave,
-			      struct ext_slave_platform_data *pdata)
+static int lsm303dlha_resume(void *mlsl_handle,
+			     struct ext_slave_descr *slave,
+			     struct ext_slave_platform_data *pdata)
 {
 	int result = INV_SUCCESS;
 	unsigned char reg1;
 	unsigned char reg2;
-	struct lsm303dlx_a_private_data *private_data =
-		(struct lsm303dlx_a_private_data *)(pdata->private_data);
+	struct lsm303dlha_private_data *private_data =
+		(struct lsm303dlha_private_data *)(pdata->private_data);
 
 
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG1,
+				       LIS331_CTRL_REG1,
 				       private_data->resume.ctrl_reg1);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
@@ -408,7 +405,7 @@ static int lsm303dlx_a_resume(void *mlsl_handle,
 		reg1 |= 0x10;
 
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG4, reg1);
+				       LIS331_CTRL_REG4, reg1);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -416,7 +413,7 @@ static int lsm303dlx_a_resume(void *mlsl_handle,
 
 	/* Configure high pass filter */
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG2, 0x0F);
+				       LIS331_CTRL_REG2, 0x0F);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -434,33 +431,33 @@ static int lsm303dlx_a_resume(void *mlsl_handle,
 		reg2 = 0x00;
 	}
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_CTRL_REG3, reg1);
+				       LIS331_CTRL_REG3, reg1);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_THS,
+				       LIS331_INT1_THS,
 				       private_data->resume.reg_ths);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_DURATION,
+				       LIS331_INT1_DURATION,
 				       private_data->resume.reg_dur);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = inv_serial_single_write(mlsl_handle, pdata->address,
-				       LSM303DLx_INT1_CFG, reg2);
+				       LIS331_INT1_CFG, reg2);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = inv_serial_read(mlsl_handle, pdata->address,
-				LSM303DLx_HP_FILTER_RESET, 1, &reg1);
+				LIS331_HP_FILTER_RESET, 1, &reg1);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -482,14 +479,14 @@ static int lsm303dlx_a_resume(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_read(void *mlsl_handle,
-			    struct ext_slave_descr *slave,
-			    struct ext_slave_platform_data *pdata,
-			    unsigned char *data)
+static int lsm303dlha_read(void *mlsl_handle,
+			   struct ext_slave_descr *slave,
+			   struct ext_slave_platform_data *pdata,
+			   unsigned char *data)
 {
 	int result = INV_SUCCESS;
 	result = inv_serial_read(mlsl_handle, pdata->address,
-				LSM303DLx_STATUS_REG, 1, data);
+				LIS331_STATUS_REG, 1, data);
 	if (data[0] & 0x0F) {
 		result = inv_serial_read(mlsl_handle, pdata->address,
 					slave->read_reg, slave->read_len, data);
@@ -514,14 +511,14 @@ static int lsm303dlx_a_read(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_init(void *mlsl_handle,
-			    struct ext_slave_descr *slave,
-			    struct ext_slave_platform_data *pdata)
+static int lsm303dlha_init(void *mlsl_handle,
+			  struct ext_slave_descr *slave,
+			  struct ext_slave_platform_data *pdata)
 {
 	long range;
-	struct lsm303dlx_a_private_data *private_data;
-	private_data = (struct lsm303dlx_a_private_data *)
-	    kzalloc(sizeof(struct lsm303dlx_a_private_data), GFP_KERNEL);
+	struct lsm303dlha_private_data *private_data;
+	private_data = (struct lsm303dlha_private_data *)
+	    kzalloc(sizeof(struct lsm303dlha_private_data), GFP_KERNEL);
 
 	if (!private_data)
 		return INV_ERROR_MEMORY_EXAUSTED;
@@ -533,31 +530,31 @@ static int lsm303dlx_a_init(void *mlsl_handle,
 	private_data->resume.mot_int1_cfg = 0x95;
 	private_data->suspend.mot_int1_cfg = 0x2a;
 
-	lsm303dlx_a_set_odr(mlsl_handle, pdata, &private_data->suspend,
-			false, 0);
-	lsm303dlx_a_set_odr(mlsl_handle, pdata, &private_data->resume,
-			false, 200000);
+	lsm303dlha_set_odr(mlsl_handle, pdata, &private_data->suspend,
+			FALSE, 0);
+	lsm303dlha_set_odr(mlsl_handle, pdata, &private_data->resume,
+			FALSE, 200000);
 
 	range = range_fixedpoint_to_long_mg(slave->range);
-	lsm303dlx_a_set_fsr(mlsl_handle, pdata, &private_data->suspend,
-			false, range);
-	lsm303dlx_a_set_fsr(mlsl_handle, pdata, &private_data->resume,
-			false, range);
+	lsm303dlha_set_fsr(mlsl_handle, pdata, &private_data->suspend,
+			FALSE, range);
+	lsm303dlha_set_fsr(mlsl_handle, pdata, &private_data->resume,
+			FALSE, range);
 
-	lsm303dlx_a_set_ths(mlsl_handle, pdata, &private_data->suspend,
-			false, 80);
-	lsm303dlx_a_set_ths(mlsl_handle, pdata, &private_data->resume,
-			false, 40);
+	lsm303dlha_set_ths(mlsl_handle, pdata, &private_data->suspend,
+			FALSE, 80);
+	lsm303dlha_set_ths(mlsl_handle, pdata, &private_data->resume,
+			FALSE, 40);
 
-	lsm303dlx_a_set_dur(mlsl_handle, pdata, &private_data->suspend,
-			false, 1000);
-	lsm303dlx_a_set_dur(mlsl_handle, pdata, &private_data->resume,
-			false, 2540);
+	lsm303dlha_set_dur(mlsl_handle, pdata, &private_data->suspend,
+			FALSE, 1000);
+	lsm303dlha_set_dur(mlsl_handle, pdata, &private_data->resume,
+			FALSE, 2540);
 
-	lsm303dlx_a_set_irq(mlsl_handle, pdata, &private_data->suspend,
-			false, MPU_SLAVE_IRQ_TYPE_NONE);
-	lsm303dlx_a_set_irq(mlsl_handle, pdata, &private_data->resume,
-			false, MPU_SLAVE_IRQ_TYPE_NONE);
+	lsm303dlha_set_irq(mlsl_handle, pdata, &private_data->suspend,
+			FALSE, MPU_SLAVE_IRQ_TYPE_NONE);
+	lsm303dlha_set_irq(mlsl_handle, pdata, &private_data->resume,
+			FALSE, MPU_SLAVE_IRQ_TYPE_NONE);
 	return INV_SUCCESS;
 }
 
@@ -575,9 +572,9 @@ static int lsm303dlx_a_init(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_exit(void *mlsl_handle,
-			    struct ext_slave_descr *slave,
-			    struct ext_slave_platform_data *pdata)
+static int lsm303dlha_exit(void *mlsl_handle,
+			  struct ext_slave_descr *slave,
+			  struct ext_slave_platform_data *pdata)
 {
 	kfree(pdata->private_data);
 	return INV_SUCCESS;
@@ -597,63 +594,63 @@ static int lsm303dlx_a_exit(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_config(void *mlsl_handle,
-			      struct ext_slave_descr *slave,
-			      struct ext_slave_platform_data *pdata,
-			      struct ext_slave_config *data)
+static int lsm303dlha_config(void *mlsl_handle,
+			struct ext_slave_descr *slave,
+			struct ext_slave_platform_data *pdata,
+			struct ext_slave_config *data)
 {
-	struct lsm303dlx_a_private_data *private_data = pdata->private_data;
+	struct lsm303dlha_private_data *private_data = pdata->private_data;
 	if (!data->data)
 		return INV_ERROR_INVALID_PARAMETER;
 
 	switch (data->key) {
 	case MPU_SLAVE_CONFIG_ODR_SUSPEND:
-		return lsm303dlx_a_set_odr(mlsl_handle, pdata,
+		return lsm303dlha_set_odr(mlsl_handle, pdata,
 					&private_data->suspend,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_ODR_RESUME:
-		return lsm303dlx_a_set_odr(mlsl_handle, pdata,
+		return lsm303dlha_set_odr(mlsl_handle, pdata,
 					&private_data->resume,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_FSR_SUSPEND:
-		return lsm303dlx_a_set_fsr(mlsl_handle, pdata,
+		return lsm303dlha_set_fsr(mlsl_handle, pdata,
 					&private_data->suspend,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_FSR_RESUME:
-		return lsm303dlx_a_set_fsr(mlsl_handle, pdata,
+		return lsm303dlha_set_fsr(mlsl_handle, pdata,
 					&private_data->resume,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_MOT_THS:
-		return lsm303dlx_a_set_ths(mlsl_handle, pdata,
+		return lsm303dlha_set_ths(mlsl_handle, pdata,
 					&private_data->suspend,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_NMOT_THS:
-		return lsm303dlx_a_set_ths(mlsl_handle, pdata,
+		return lsm303dlha_set_ths(mlsl_handle, pdata,
 					&private_data->resume,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_MOT_DUR:
-		return lsm303dlx_a_set_dur(mlsl_handle, pdata,
+		return lsm303dlha_set_dur(mlsl_handle, pdata,
 					&private_data->suspend,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_NMOT_DUR:
-		return lsm303dlx_a_set_dur(mlsl_handle, pdata,
+		return lsm303dlha_set_dur(mlsl_handle, pdata,
 					&private_data->resume,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_IRQ_SUSPEND:
-		return lsm303dlx_a_set_irq(mlsl_handle, pdata,
+		return lsm303dlha_set_irq(mlsl_handle, pdata,
 					&private_data->suspend,
 					data->apply,
 					*((long *)data->data));
 	case MPU_SLAVE_CONFIG_IRQ_RESUME:
-		return lsm303dlx_a_set_irq(mlsl_handle, pdata,
+		return lsm303dlha_set_irq(mlsl_handle, pdata,
 					&private_data->resume,
 					data->apply,
 					*((long *)data->data));
@@ -679,12 +676,12 @@ static int lsm303dlx_a_config(void *mlsl_handle,
  *
  *  @return INV_SUCCESS if successful or a non-zero error code.
  */
-static int lsm303dlx_a_get_config(void *mlsl_handle,
-				  struct ext_slave_descr *slave,
-				  struct ext_slave_platform_data *pdata,
-				  struct ext_slave_config *data)
+static int lsm303dlha_get_config(void *mlsl_handle,
+				struct ext_slave_descr *slave,
+				struct ext_slave_platform_data *pdata,
+				struct ext_slave_config *data)
 {
-	struct lsm303dlx_a_private_data *private_data = pdata->private_data;
+	struct lsm303dlha_private_data *private_data = pdata->private_data;
 	if (!data->data)
 		return INV_ERROR_INVALID_PARAMETER;
 
@@ -737,17 +734,17 @@ static int lsm303dlx_a_get_config(void *mlsl_handle,
 	return INV_SUCCESS;
 }
 
-static struct ext_slave_descr lsm303dlx_a_descr = {
-	.init             = lsm303dlx_a_init,
-	.exit             = lsm303dlx_a_exit,
-	.suspend          = lsm303dlx_a_suspend,
-	.resume           = lsm303dlx_a_resume,
-	.read             = lsm303dlx_a_read,
-	.config           = lsm303dlx_a_config,
-	.get_config       = lsm303dlx_a_get_config,
-	.name             = "lsm303dlx_a",
-	.type             = EXT_SLAVE_TYPE_ACCEL,
-	.id               = ACCEL_ID_LSM303DLX,
+static struct ext_slave_descr lsm303dlha_descr = {
+	.init             = lsm303dlha_init,
+	.exit             = lsm303dlha_exit,
+	.suspend          = lsm303dlha_suspend,
+	.resume           = lsm303dlha_resume,
+	.read             = lsm303dlha_read,
+	.config           = lsm303dlha_config,
+	.get_config       = lsm303dlha_get_config,
+	.name             = "lsm303dlha",
+	.type             = EXT_SLAVE_TYPE_ACCELEROMETER,
+	.id               = ACCEL_ID_LSM303A,
 	.read_reg         = (0x28 | 0x80), /* 0x80 for burst reads */
 	.read_len         = 6,
 	.endian           = EXT_SLAVE_BIG_ENDIAN,
@@ -756,24 +753,24 @@ static struct ext_slave_descr lsm303dlx_a_descr = {
 };
 
 static
-struct ext_slave_descr *lsm303dlx_a_get_slave_descr(void)
+struct ext_slave_descr *lsm303a_get_slave_descr(void)
 {
-	return &lsm303dlx_a_descr;
+	return &lsm303dlha_descr;
 }
 
 /* -------------------------------------------------------------------------- */
-struct lsm303dlx_a_mod_private_data {
+struct lsm303a_mod_private_data {
 	struct i2c_client *client;
 	struct ext_slave_platform_data *pdata;
 };
 
 static unsigned short normal_i2c[] = { I2C_CLIENT_END };
 
-static int lsm303dlx_a_mod_probe(struct i2c_client *client,
+static int lsm303a_mod_probe(struct i2c_client *client,
 			   const struct i2c_device_id *devid)
 {
 	struct ext_slave_platform_data *pdata;
-	struct lsm303dlx_a_mod_private_data *private_data;
+	struct lsm303a_mod_private_data *private_data;
 	int result = 0;
 
 	dev_info(&client->adapter->dev, "%s: %s\n", __func__, devid->name);
@@ -802,7 +799,7 @@ static int lsm303dlx_a_mod_probe(struct i2c_client *client,
 	private_data->pdata = pdata;
 
 	result = inv_mpu_register_slave(THIS_MODULE, client, pdata,
-					lsm303dlx_a_get_slave_descr);
+					lsm303a_get_slave_descr);
 	if (result) {
 		dev_err(&client->adapter->dev,
 			"Slave registration failed: %s, %d\n",
@@ -820,61 +817,61 @@ out_no_free:
 
 }
 
-static int lsm303dlx_a_mod_remove(struct i2c_client *client)
+static int lsm303a_mod_remove(struct i2c_client *client)
 {
-	struct lsm303dlx_a_mod_private_data *private_data =
+	struct lsm303a_mod_private_data *private_data =
 		i2c_get_clientdata(client);
 
 	dev_dbg(&client->adapter->dev, "%s\n", __func__);
 
 	inv_mpu_unregister_slave(client, private_data->pdata,
-				lsm303dlx_a_get_slave_descr);
+				lsm303a_get_slave_descr);
 
 	kfree(private_data);
 	return 0;
 }
 
-static const struct i2c_device_id lsm303dlx_a_mod_id[] = {
-	{ "lsm303dlx", ACCEL_ID_LSM303DLX },
+static const struct i2c_device_id lsm303a_mod_id[] = {
+	{ "lsm303a", ACCEL_ID_LSM303A },
 	{}
 };
 
-MODULE_DEVICE_TABLE(i2c, lsm303dlx_a_mod_id);
+MODULE_DEVICE_TABLE(i2c, lsm303a_mod_id);
 
-static struct i2c_driver lsm303dlx_a_mod_driver = {
+static struct i2c_driver lsm303a_mod_driver = {
 	.class = I2C_CLASS_HWMON,
-	.probe = lsm303dlx_a_mod_probe,
-	.remove = lsm303dlx_a_mod_remove,
-	.id_table = lsm303dlx_a_mod_id,
+	.probe = lsm303a_mod_probe,
+	.remove = lsm303a_mod_remove,
+	.id_table = lsm303a_mod_id,
 	.driver = {
 		   .owner = THIS_MODULE,
-		   .name = "lsm303dlx_a_mod",
+		   .name = "lsm303a_mod",
 		   },
 	.address_list = normal_i2c,
 };
 
-static int __init lsm303dlx_a_mod_init(void)
+static int __init lsm303a_mod_init(void)
 {
-	int res = i2c_add_driver(&lsm303dlx_a_mod_driver);
-	pr_info("%s: Probe name %s\n", __func__, "lsm303dlx_a_mod");
+	int res = i2c_add_driver(&lsm303a_mod_driver);
+	pr_info("%s: Probe name %s\n", __func__, "lsm303a_mod");
 	if (res)
 		pr_err("%s failed\n", __func__);
 	return res;
 }
 
-static void __exit lsm303dlx_a_mod_exit(void)
+static void __exit lsm303a_mod_exit(void)
 {
 	pr_info("%s\n", __func__);
-	i2c_del_driver(&lsm303dlx_a_mod_driver);
+	i2c_del_driver(&lsm303a_mod_driver);
 }
 
-module_init(lsm303dlx_a_mod_init);
-module_exit(lsm303dlx_a_mod_exit);
+module_init(lsm303a_mod_init);
+module_exit(lsm303a_mod_exit);
 
 MODULE_AUTHOR("Invensense Corporation");
-MODULE_DESCRIPTION("Driver to integrate LSM303DLX_A sensor with the MPU");
+MODULE_DESCRIPTION("Driver to integrate LSM303A sensor with the MPU");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("lsm303dlx_a_mod");
+MODULE_ALIAS("lsm303a_mod");
 
 /**
  *  @}

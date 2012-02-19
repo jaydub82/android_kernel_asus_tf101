@@ -1,20 +1,20 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 #include <linux/interrupt.h>
 #include <linux/module.h>
@@ -162,7 +162,6 @@ static irqreturn_t slaveirq_handler(int irq, void *dev_id)
 {
 	struct slaveirq_dev_data *data = (struct slaveirq_dev_data *)dev_id;
 	static int mycount;
-	struct timeval irqtime;
 	mycount++;
 
 	data->data.interruptcount++;
@@ -170,9 +169,7 @@ static irqreturn_t slaveirq_handler(int irq, void *dev_id)
 	/* wake up (unblock) for reading data from userspace */
 	data->data_ready = 1;
 
-	do_gettimeofday(&irqtime);
-	data->data.irqtime = (((long long)irqtime.tv_sec) << 32);
-	data->data.irqtime += irqtime.tv_usec;
+	data->data.irqtime = ktime_to_ns(ktime_get());
 	data->data.data_type |= 1;
 
 	wake_up_interruptible(&data->slaveirq_wait);
@@ -222,8 +219,7 @@ int slaveirq_init(struct i2c_adapter *slave_adapter,
 
 	init_waitqueue_head(&data->slaveirq_wait);
 
-	res = request_irq(data->irq, slaveirq_handler,
-			IRQF_TRIGGER_RISING | IRQF_SHARED,
+	res = request_irq(data->irq, slaveirq_handler, IRQF_TRIGGER_RISING,
 			  data->dev.name, data);
 
 	if (res) {
@@ -241,9 +237,9 @@ int slaveirq_init(struct i2c_adapter *slave_adapter,
 
 	return res;
 
-out_misc_register:
+ out_misc_register:
 	free_irq(data->irq, data);
-out_request_irq:
+ out_request_irq:
 	kfree(pdata->irq_data);
 	pdata->irq_data = NULL;
 

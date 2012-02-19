@@ -1,20 +1,20 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 
 /**
@@ -192,32 +192,30 @@ static int bma250_set_odr(void *mlsl_handle,
 	int result = INV_SUCCESS;
 	unsigned char reg_odr;
 
-	/* Table uses bandwidth which is half the sample rate */
-	odr = odr >> 1;
 	if (odr >= 1000000) {
 		reg_odr = 0x0F;
-		config->odr = 2000000;
+		config->odr = 1000000;
 	} else if (odr >= 500000) {
 		reg_odr = 0x0E;
-		config->odr = 1000000;
+		config->odr = 500000;
 	} else if (odr >= 250000) {
 		reg_odr = 0x0D;
-		config->odr = 500000;
+		config->odr = 250000;
 	} else if (odr >= 125000) {
 		reg_odr = 0x0C;
-		config->odr = 250000;
+		config->odr = 125000;
 	} else if (odr >= 62500) {
 		reg_odr = 0x0B;
-		config->odr = 125000;
+		config->odr = 62500;
 	} else if (odr >= 31250) {
 		reg_odr = 0x0A;
-		config->odr = 62500;
+		config->odr = 31250;
 	} else if (odr >= 15630) {
 		reg_odr = 0x09;
-		config->odr = 31250;
+		config->odr = 15630;
 	} else {
 		reg_odr = 0x08;
-		config->odr = 15630;
+		config->odr = 7810;
 	}
 
 	if (apply) {
@@ -325,13 +323,13 @@ static int bma250_init(void *mlsl_handle,
 	msleep(1);
 
 	result = bma250_set_odr(mlsl_handle, pdata, &private_data->suspend,
-				false, 0);
+				FALSE, 0);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_odr(mlsl_handle, pdata, &private_data->resume,
-				false, 200000);
+				FALSE, 200000);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -339,22 +337,22 @@ static int bma250_init(void *mlsl_handle,
 
 	range = range_fixedpoint_to_long_mg(slave->range);
 	result = bma250_set_fsr(mlsl_handle, pdata, &private_data->suspend,
-				false, range);
+				FALSE, range);
 	result = bma250_set_fsr(mlsl_handle, pdata, &private_data->resume,
-				false, range);
+				FALSE, range);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 
 	result = bma250_set_irq(mlsl_handle, pdata, &private_data->suspend,
-				false, MPU_SLAVE_IRQ_TYPE_NONE);
+				FALSE, MPU_SLAVE_IRQ_TYPE_NONE);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_irq(mlsl_handle, pdata, &private_data->resume,
-				false, MPU_SLAVE_IRQ_TYPE_NONE);
+				FALSE, MPU_SLAVE_IRQ_TYPE_NONE);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -532,19 +530,19 @@ static int bma250_suspend(void *mlsl_handle,
 		&((struct bma250_private_data *)pdata->private_data)->suspend;
 
 	result = bma250_set_odr(mlsl_handle, pdata, suspend_config,
-				true, suspend_config->odr);
+				TRUE, suspend_config->odr);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_fsr(mlsl_handle, pdata, suspend_config,
-				true, suspend_config->fsr);
+				TRUE, suspend_config->fsr);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_irq(mlsl_handle, pdata, suspend_config,
-				true, suspend_config->irq_type);
+				TRUE, suspend_config->irq_type);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -583,19 +581,19 @@ static int bma250_resume(void *mlsl_handle,
 		&((struct bma250_private_data *)pdata->private_data)->resume;
 
 	result = bma250_set_odr(mlsl_handle, pdata, resume_config,
-				true, resume_config->odr);
+				TRUE, resume_config->odr);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_fsr(mlsl_handle, pdata, resume_config,
-				true, resume_config->fsr);
+				TRUE, resume_config->fsr);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
 	}
 	result = bma250_set_irq(mlsl_handle, pdata, resume_config,
-				true, resume_config->irq_type);
+				TRUE, resume_config->irq_type);
 	if (result) {
 		LOG_RESULT_LOCATION(result);
 		return result;
@@ -631,8 +629,6 @@ static int bma250_read(void *mlsl_handle,
 		       unsigned char *data)
 {
 	int result = INV_SUCCESS;
-	result = inv_serial_read(mlsl_handle, pdata->address,
-				BMA250_STATUS_REG, 1, data);
 	if (1) { /* KLP - workaroud for small data ready window */
 		result = inv_serial_read(mlsl_handle, pdata->address,
 				slave->read_reg, slave->read_len, data);
@@ -650,7 +646,7 @@ static struct ext_slave_descr bma250_descr = {
 	.config           = bma250_config,
 	.get_config       = bma250_get_config,
 	.name             = "bma250",
-	.type             = EXT_SLAVE_TYPE_ACCEL,
+	.type             = EXT_SLAVE_TYPE_ACCELEROMETER,
 	.id               = ACCEL_ID_BMA250,
 	.read_reg         = 0x02,
 	.read_len         = 6,

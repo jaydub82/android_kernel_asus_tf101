@@ -1,20 +1,20 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 #include <linux/interrupt.h>
 #include <linux/module.h>
@@ -155,8 +155,9 @@ static long mpuirq_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 static irqreturn_t mpuirq_handler(int irq, void *dev_id)
 {
 	static int mycount;
-	struct timeval irqtime;
 	mycount++;
+
+	pr_info("mpuirq_handler %d\n", irq);
 
 	mpuirq_data.interruptcount++;
 
@@ -164,9 +165,7 @@ static irqreturn_t mpuirq_handler(int irq, void *dev_id)
 	/* and ignore first interrupt generated in module init */
 	mpuirq_dev_data.data_ready = 1;
 
-	do_gettimeofday(&irqtime);
-	mpuirq_data.irqtime = (((long long)irqtime.tv_sec) << 32);
-	mpuirq_data.irqtime += irqtime.tv_usec;
+	mpuirq_data.irqtime = ktime_to_ns(ktime_get());
 	mpuirq_data.data_type = MPUIRQ_DATA_TYPE_MPU_IRQ;
 	mpuirq_data.data = 0;
 
@@ -217,7 +216,6 @@ int mpuirq_init(struct i2c_client *mpu_client, struct mldl_cfg *mldl_cfg)
 		else
 			flags = IRQF_TRIGGER_RISING;
 
-		flags |= IRQF_SHARED;
 		res =
 		    request_irq(mpuirq_dev_data.irq, mpuirq_handler, flags,
 				interface, &mpuirq_dev_data.irq);

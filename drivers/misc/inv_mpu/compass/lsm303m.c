@@ -1,27 +1,27 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 
 /**
  *  @addtogroup COMPASSDL
  *
  *  @{
- *      @file   lsm303dlx_m.c
+ *      @file   lsm303m.c
  *      @brief  Magnetometer setup and handling methods for ST LSM303
  *              compass.
  *              This magnetometer device is part of a combo chip with the
@@ -101,7 +101,7 @@ enum LSM_MODE {
 
 /* -------------------------------------------------------------------------- */
 
-static int lsm303dlx_m_suspend(void *mlsl_handle,
+static int lsm303dlhm_suspend(void *mlsl_handle,
 			      struct ext_slave_descr *slave,
 			      struct ext_slave_platform_data *pdata)
 {
@@ -119,7 +119,7 @@ static int lsm303dlx_m_suspend(void *mlsl_handle,
 	return result;
 }
 
-static int lsm303dlx_m_resume(void *mlsl_handle,
+static int lsm303dlhm_resume(void *mlsl_handle,
 			     struct ext_slave_descr *slave,
 			     struct ext_slave_platform_data *pdata)
 {
@@ -153,14 +153,14 @@ static int lsm303dlx_m_resume(void *mlsl_handle,
 	return result;
 }
 
-static int lsm303dlx_m_read(void *mlsl_handle,
+static int lsm303dlhm_read(void *mlsl_handle,
 			   struct ext_slave_descr *slave,
 			   struct ext_slave_platform_data *pdata,
 			   unsigned char *data)
 {
 	unsigned char stat;
 	int result = INV_SUCCESS;
-	short axis_fixed;
+	short axisFixed;
 
 	/* Read status reg. to check if data is ready */
 	result =
@@ -196,35 +196,27 @@ static int lsm303dlx_m_read(void *mlsl_handle,
 		}
 		/* convert to fixed point and apply sensitivity correction for
 		   Z-axis */
-		axis_fixed =
+		axisFixed =
 		    (short)((unsigned short)data[5] +
 			    (unsigned short)data[4] * 256);
 		/* scale up by 1.125 (36/32) approximate of 1.122 (320/285) */
-		if (slave->id == COMPASS_ID_LSM303DLM) {
-			/* NOTE/IMPORTANT:
-			   lsm303dlm compass axis definition doesn't
-			   respect the right hand rule. We invert
-			   the sign of the Z axis to fix that. */
-			axis_fixed = (short)(-1 * axis_fixed * 36);
-		} else {
-			axis_fixed = (short)(axis_fixed * 36);
-		}
-		data[4] = axis_fixed >> 8;
-		data[5] = axis_fixed & 0xFF;
+		axisFixed = (short)(axisFixed * 36);
+		data[4] = axisFixed >> 8;
+		data[5] = axisFixed & 0xFF;
 
-		axis_fixed =
+		axisFixed =
 		    (short)((unsigned short)data[3] +
 			    (unsigned short)data[2] * 256);
-		axis_fixed = (short)(axis_fixed * 32);
-		data[2] = axis_fixed >> 8;
-		data[3] = axis_fixed & 0xFF;
+		axisFixed = (short)(axisFixed * 32);
+		data[2] = axisFixed >> 8;
+		data[3] = axisFixed & 0xFF;
 
-		axis_fixed =
+		axisFixed =
 		    (short)((unsigned short)data[1] +
 			    (unsigned short)data[0] * 256);
-		axis_fixed = (short)(axis_fixed * 32);
-		data[0] = axis_fixed >> 8;
-		data[1] = axis_fixed & 0xFF;
+		axisFixed = (short)(axisFixed * 32);
+		data[0] = axisFixed >> 8;
+		data[1] = axisFixed & 0xFF;
 
 		/* trigger next measurement read */
 		result =
@@ -250,17 +242,17 @@ static int lsm303dlx_m_read(void *mlsl_handle,
 	}
 }
 
-static struct ext_slave_descr lsm303dlx_m_descr = {
+static struct ext_slave_descr lsm303dlhm_descr = {
 	.init             = NULL,
 	.exit             = NULL,
-	.suspend          = lsm303dlx_m_suspend,
-	.resume           = lsm303dlx_m_resume,
-	.read             = lsm303dlx_m_read,
+	.suspend          = lsm303dlhm_suspend,
+	.resume           = lsm303dlhm_resume,
+	.read             = lsm303dlhm_read,
 	.config           = NULL,
 	.get_config       = NULL,
-	.name             = "lsm303dlx_m",
+	.name             = "lsm303dlhm",
 	.type             = EXT_SLAVE_TYPE_COMPASS,
-	.id               = ID_INVALID,
+	.id               = COMPASS_ID_LSM303M,
 	.read_reg         = 0x06,
 	.read_len         = 6,
 	.endian           = EXT_SLAVE_BIG_ENDIAN,
@@ -269,35 +261,27 @@ static struct ext_slave_descr lsm303dlx_m_descr = {
 };
 
 static
-struct ext_slave_descr *lsm303dlx_m_get_slave_descr(void)
+struct ext_slave_descr *lsm303m_get_slave_descr(void)
 {
-	return &lsm303dlx_m_descr;
+	return &lsm303dlhm_descr;
 }
 
 /* -------------------------------------------------------------------------- */
-struct lsm303dlx_m_mod_private_data {
+struct lsm303m_mod_private_data {
 	struct i2c_client *client;
 	struct ext_slave_platform_data *pdata;
 };
 
-static const struct i2c_device_id lsm303dlx_m_mod_id[] = {
-	{ "lsm303dlh", COMPASS_ID_LSM303DLH },
-	{ "lsm303dlm", COMPASS_ID_LSM303DLM },
-	{}
-};
-MODULE_DEVICE_TABLE(i2c, lsm303dlx_m_mod_id);
-
 static unsigned short normal_i2c[] = { I2C_CLIENT_END };
 
-static int lsm303dlx_m_mod_probe(struct i2c_client *client,
+static int lsm303m_mod_probe(struct i2c_client *client,
 			   const struct i2c_device_id *devid)
 {
 	struct ext_slave_platform_data *pdata;
-	struct lsm303dlx_m_mod_private_data *private_data;
+	struct lsm303m_mod_private_data *private_data;
 	int result = 0;
 
 	dev_info(&client->adapter->dev, "%s: %s\n", __func__, devid->name);
-	lsm303dlx_m_descr.id = devid->driver_data;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		result = -ENODEV;
@@ -323,7 +307,7 @@ static int lsm303dlx_m_mod_probe(struct i2c_client *client,
 	private_data->pdata = pdata;
 
 	result = inv_mpu_register_slave(THIS_MODULE, client, pdata,
-					lsm303dlx_m_get_slave_descr);
+					lsm303m_get_slave_descr);
 	if (result) {
 		dev_err(&client->adapter->dev,
 			"Slave registration failed: %s, %d\n",
@@ -341,54 +325,61 @@ out_no_free:
 
 }
 
-static int lsm303dlx_m_mod_remove(struct i2c_client *client)
+static int lsm303m_mod_remove(struct i2c_client *client)
 {
-	struct lsm303dlx_m_mod_private_data *private_data =
+	struct lsm303m_mod_private_data *private_data =
 		i2c_get_clientdata(client);
 
 	dev_dbg(&client->adapter->dev, "%s\n", __func__);
 
 	inv_mpu_unregister_slave(client, private_data->pdata,
-				lsm303dlx_m_get_slave_descr);
+				lsm303m_get_slave_descr);
 
 	kfree(private_data);
 	return 0;
 }
 
-static struct i2c_driver lsm303dlx_m_mod_driver = {
+static const struct i2c_device_id lsm303m_mod_id[] = {
+	{ "lsm303m", COMPASS_ID_LSM303M },
+	{}
+};
+
+MODULE_DEVICE_TABLE(i2c, lsm303m_mod_id);
+
+static struct i2c_driver lsm303m_mod_driver = {
 	.class = I2C_CLASS_HWMON,
-	.probe = lsm303dlx_m_mod_probe,
-	.remove = lsm303dlx_m_mod_remove,
-	.id_table = lsm303dlx_m_mod_id,
+	.probe = lsm303m_mod_probe,
+	.remove = lsm303m_mod_remove,
+	.id_table = lsm303m_mod_id,
 	.driver = {
 		   .owner = THIS_MODULE,
-		   .name = "lsm303dlx_m_mod",
+		   .name = "lsm303m_mod",
 		   },
 	.address_list = normal_i2c,
 };
 
-static int __init lsm303dlx_m_mod_init(void)
+static int __init lsm303m_mod_init(void)
 {
-	int res = i2c_add_driver(&lsm303dlx_m_mod_driver);
-	pr_info("%s: Probe name %s\n", __func__, "lsm303dlx_m_mod");
+	int res = i2c_add_driver(&lsm303m_mod_driver);
+	pr_info("%s: Probe name %s\n", __func__, "lsm303m_mod");
 	if (res)
 		pr_err("%s failed\n", __func__);
 	return res;
 }
 
-static void __exit lsm303dlx_m_mod_exit(void)
+static void __exit lsm303m_mod_exit(void)
 {
 	pr_info("%s\n", __func__);
-	i2c_del_driver(&lsm303dlx_m_mod_driver);
+	i2c_del_driver(&lsm303m_mod_driver);
 }
 
-module_init(lsm303dlx_m_mod_init);
-module_exit(lsm303dlx_m_mod_exit);
+module_init(lsm303m_mod_init);
+module_exit(lsm303m_mod_exit);
 
 MODULE_AUTHOR("Invensense Corporation");
-MODULE_DESCRIPTION("Driver to integrate lsm303dlx_m sensor with the MPU");
+MODULE_DESCRIPTION("Driver to integrate LSM303M sensor with the MPU");
 MODULE_LICENSE("GPL");
-MODULE_ALIAS("lsm303dlx_m_mod");
+MODULE_ALIAS("lsm303m_mod");
 
 /**
  *  @}

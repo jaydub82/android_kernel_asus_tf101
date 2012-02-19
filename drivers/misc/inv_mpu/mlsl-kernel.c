@@ -1,26 +1,25 @@
 /*
-	$License:
-	Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
+ $License:
+    Copyright (C) 2011 InvenSense Corporation, All Rights Reserved.
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-	$
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  $
  */
 
 #include "mlsl.h"
 #include <linux/i2c.h>
-#include "log.h"
-#include "mpu3050.h"
+#  include "mpu3050.h"
 
 static int inv_i2c_write(struct i2c_adapter *i2c_adap,
 			    unsigned char address,
@@ -29,10 +28,8 @@ static int inv_i2c_write(struct i2c_adapter *i2c_adap,
 	struct i2c_msg msgs[1];
 	int res;
 
-	if (!data || !i2c_adap) {
-		LOG_RESULT_LOCATION(-EINVAL);
+	if (!data || !i2c_adap)
 		return -EINVAL;
-	}
 
 	msgs[0].addr = address;
 	msgs[0].flags = 0;	/* write */
@@ -43,7 +40,6 @@ static int inv_i2c_write(struct i2c_adapter *i2c_adap,
 	if (res < 1) {
 		if (res == 0)
 			res = -EIO;
-		LOG_RESULT_LOCATION(res);
 		return res;
 	} else
 		return 0;
@@ -67,10 +63,8 @@ static int inv_i2c_read(struct i2c_adapter *i2c_adap,
 	struct i2c_msg msgs[2];
 	int res;
 
-	if (!data || !i2c_adap) {
-		LOG_RESULT_LOCATION(-EINVAL);
+	if (!data || !i2c_adap)
 		return -EINVAL;
-	}
 
 	msgs[0].addr = address;
 	msgs[0].flags = 0;	/* write */
@@ -86,7 +80,6 @@ static int inv_i2c_read(struct i2c_adapter *i2c_adap,
 	if (res < 2) {
 		if (res >= 0)
 			res = -EIO;
-		LOG_RESULT_LOCATION(res);
 		return res;
 	} else
 		return 0;
@@ -104,10 +97,8 @@ static int mpu_memory_read(struct i2c_adapter *i2c_adap,
 	struct i2c_msg msgs[4];
 	int res;
 
-	if (!data || !i2c_adap) {
-		LOG_RESULT_LOCATION(-EINVAL);
+	if (!data || !i2c_adap)
 		return -EINVAL;
-	}
 
 	bank[0] = MPUREG_BANK_SEL;
 	bank[1] = mem_addr >> 8;
@@ -142,7 +133,6 @@ static int mpu_memory_read(struct i2c_adapter *i2c_adap,
 	if (res != 4) {
 		if (res >= 0)
 			res = -EIO;
-		LOG_RESULT_LOCATION(res);
 		return res;
 	} else
 		return 0;
@@ -160,14 +150,10 @@ static int mpu_memory_write(struct i2c_adapter *i2c_adap,
 	struct i2c_msg msgs[3];
 	int res;
 
-	if (!data || !i2c_adap) {
-		LOG_RESULT_LOCATION(-EINVAL);
+	if (!data || !i2c_adap)
 		return -EINVAL;
-	}
-	if (len >= (sizeof(buf) - 1)) {
-		LOG_RESULT_LOCATION(-ENOMEM);
+	if (len >= (sizeof(buf) - 1))
 		return -ENOMEM;
-	}
 
 	bank[0] = MPUREG_BANK_SEL;
 	bank[1] = mem_addr >> 8;
@@ -198,7 +184,6 @@ static int mpu_memory_write(struct i2c_adapter *i2c_adap,
 	if (res != 3) {
 		if (res >= 0)
 			res = -EIO;
-		LOG_RESULT_LOCATION(res);
 		return res;
 	} else
 		return 0;
@@ -243,10 +228,8 @@ int inv_serial_write(
 					       sl_handle, slave_addr,
 					       1 + this_len, i2c_write);
 		}
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_written += this_len;
 	}
 	return 0;
@@ -263,12 +246,8 @@ int inv_serial_read(
 	int result;
 	unsigned short bytes_read = 0;
 
-	if ((slave_addr & 0x7E) == DEFAULT_MPU_SLAVEADDR
-		&& (register_addr == MPUREG_FIFO_R_W ||
-		    register_addr == MPUREG_MEM_R_W)) {
-		LOG_RESULT_LOCATION(INV_ERROR_INVALID_PARAMETER);
+	if (register_addr == MPUREG_FIFO_R_W || register_addr == MPUREG_MEM_R_W)
 		return INV_ERROR_INVALID_PARAMETER;
-	}
 
 	while (bytes_read < length) {
 		unsigned short this_len =
@@ -276,10 +255,8 @@ int inv_serial_read(
 		result = inv_i2c_read((struct i2c_adapter *)sl_handle,
 				      slave_addr, register_addr + bytes_read,
 				      this_len, &data[bytes_read]);
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_read += this_len;
 	}
 	return 0;
@@ -308,10 +285,8 @@ int inv_serial_write_mem(
 		result = mpu_memory_write((struct i2c_adapter *)sl_handle,
 					  slave_addr, mem_addr + bytes_written,
 					  this_len, &data[bytes_written]);
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_written += this_len;
 	}
 	return 0;
@@ -342,10 +317,8 @@ int inv_serial_read_mem(
 		    mpu_memory_read((struct i2c_adapter *)sl_handle,
 				    slave_addr, mem_addr + bytes_read,
 				    this_len, &data[bytes_read]);
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_read += this_len;
 	}
 	return 0;
@@ -374,10 +347,8 @@ int inv_serial_write_fifo(
 		memcpy(&i2c_write[1], &data[bytes_written], this_len);
 		result = inv_i2c_write((struct i2c_adapter *)sl_handle,
 				       slave_addr, this_len + 1, i2c_write);
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_written += this_len;
 	}
 	return 0;
@@ -404,10 +375,8 @@ int inv_serial_read_fifo(
 		result = inv_i2c_read((struct i2c_adapter *)sl_handle,
 				      slave_addr, MPUREG_FIFO_R_W, this_len,
 				      &data[bytes_read]);
-		if (result) {
-			LOG_RESULT_LOCATION(result);
+		if (result)
 			return result;
-		}
 		bytes_read += this_len;
 	}
 
